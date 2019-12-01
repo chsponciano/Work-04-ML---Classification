@@ -5,8 +5,8 @@ from math import sqrt
 from scipy import stats
 from scipy.stats import mode
 
-# Students: Carlos Henrique Ponciano da Silva & Vinicius Luis da Silva
 
+# Students: Carlos Henrique Ponciano da Silva & Vinicius Luis da Silva
 
 def read(filename : str) -> tuple:
     return scipy.loadmat(f'data/{filename}.mat')
@@ -31,7 +31,7 @@ def accuracy(predicted_label : np, testRots : np) -> tuple:
 
 def calculate_better_accuracy(grupoTrain : np, trainRots : np, grupoTest : np, testRots : np, k : int = 1, attempts : int = 20) -> tuple:
     _temp_attempts = attempts
-    _best_accuracy = _best_knn = 0
+    _best_accuracy = _best_knn = _best_prediced = 0
 
     while _temp_attempts != 0:
         _predicted_label = predict(grupoTrain, trainRots, grupoTest, k)
@@ -39,6 +39,7 @@ def calculate_better_accuracy(grupoTrain : np, trainRots : np, grupoTest : np, t
 
         if _accuracy > _best_accuracy:
             _best_accuracy  = _accuracy
+            _best_prediced  = _predicted_label
             _best_knn       = k
             _temp_attempts  = attempts
         else:
@@ -46,15 +47,15 @@ def calculate_better_accuracy(grupoTrain : np, trainRots : np, grupoTest : np, t
         
         k += 1
 
-    return _best_accuracy, _best_knn
+    return _best_accuracy, _best_knn, _best_prediced
 
-def get_quantity_groups(grupoTrain : np, trainRots : np, grupoTest : np, testRots : np, accuracy_search : float, k : int = 1, attempts : int = 20):
+def get_quantity_groups(grupoTrain : np, trainRots : np, grupoTest : np, testRots : np, accuracy_search : float, k : int = 1, attempts : int = 20) -> tuple:
     while k != attempts:
         _predicted_label = predict(grupoTrain, trainRots, grupoTest, k)
         _accuracy        = accuracy(_predicted_label, testRots)
 
         if (_accuracy == accuracy_search):
-            return k
+            return k, _predicted_label
         else:
             k += 1
     
@@ -74,18 +75,22 @@ def normalization(data : list) -> list:
 
 def get_label_data(data : list, labels : list, current_label : float, index : int) -> list:
     _buffer = list()
-
     for idx in range(len(data)):
         if  labels[idx] == current_label:
             _buffer.append(data[idx][index])
             
     return _buffer
         
-def plot(data : list, labels : list, d1 : int = 0, d2 : int = 1):
-    fig, ax = plt.subplots()
-    plt.suptitle(f'KNN')
-    ax.scatter(get_label_data(data, labels, 1, d1), get_label_data(data, labels, 1, d2), c='red' , marker='^')
-    ax.scatter(get_label_data(data, labels, 2, d1), get_label_data(data, labels, 2, d2), c='blue' , marker='+')
-    ax.scatter(get_label_data(data, labels, 3, d1), get_label_data(data, labels, 3, d2), c='green', marker='.')
-    plt.show()
+def plot(data : list, labels : list, title : list, suptitle : str, d1 : int = 0, d2 : int = 1):
+    fig, ax = plt.subplots(1, len(labels))
+
+    for i in range(len(ax)):
+        ax[i].scatter(get_label_data(data, labels[i], 1, d1), get_label_data(data, labels[i], 1, d2), c='red' , marker='^')
+        ax[i].scatter(get_label_data(data, labels[i], 2, d1), get_label_data(data, labels[i], 2, d2), c='blue' , marker='+')
+        ax[i].scatter(get_label_data(data, labels[i], 3, d1), get_label_data(data, labels[i], 3, d2), c='green', marker='o')
+        ax[i].set_title(title[i])
     
+    wm = plt.get_current_fig_manager()
+    wm.window.state('zoomed')
+    fig.suptitle(suptitle)
+    plt.show()
