@@ -27,7 +27,7 @@ def predict(grupoTrain : np, trainRots : np, grupoTest : np, k : int) -> np:
     return _labels
 
 def accuracy(predicted_label : np, testRots : np) -> tuple:
-    return float(sum(predicted_label == testRots) / len(testRots))
+    return round(float(sum(predicted_label == testRots) / len(testRots)), 2)
 
 def calculate_better_accuracy(grupoTrain : np, trainRots : np, grupoTest : np, testRots : np, k : int = 1, attempts : int = 20) -> tuple:
     _temp_attempts = attempts
@@ -52,6 +52,7 @@ def get_quantity_groups(grupoTrain : np, trainRots : np, grupoTest : np, testRot
     while k != attempts:
         _predicted_label = predict(grupoTrain, trainRots, grupoTest, k)
         _accuracy        = accuracy(_predicted_label, testRots)
+
         if (_accuracy == accuracy_search):
             return k
         else:
@@ -63,20 +64,24 @@ def distance(p : np, q : np) -> float:
     return np.sqrt(np.power(p - q, 2).sum(axis=1))
 
 def normalization(data : list) -> list:
-    return (data - np.min(data)) / (np.max(data) - np.min(data))
+    _buffer_normalization = np.ndarray(shape=data.shape)
+    
+    for idx in range(data.shape[1]):
+        _element = data[:, idx]
+        _buffer_normalization[:, idx] = (_element - np.min(_element)) / (np.max(_element) - np.min(_element))
+
+    return _buffer_normalization
 
 def get_label_data(data : list, labels : list, current_label : float, index : int) -> list:
     _buffer = list()
 
     for idx in range(len(data)):
-        if labels[idx][0] == current_label:
+        if  labels[idx] == current_label:
             _buffer.append(data[idx][index])
-
-    print(_buffer)
-
+            
     return _buffer
         
-def plot(data : list, labels : list, d1 : int = 1, d2 : int = 2):
+def plot(data : list, labels : list, d1 : int = 0, d2 : int = 1):
     fig, ax = plt.subplots()
     plt.suptitle(f'KNN')
     ax.scatter(get_label_data(data, labels, 1, d1), get_label_data(data, labels, 1, d2), c='red' , marker='^')
